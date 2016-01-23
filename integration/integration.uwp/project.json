@@ -1,7 +1,7 @@
 ﻿{
   "dependencies": {
     "Microsoft.NETCore.UniversalWindowsPlatform": "5.0.0",
-    "xunit.runner.devices": "1.2.0",
+    "xunit.runner.devices": "2.0.0-rc2-build0003",
     "xunit": "2.1.0"
   },
   "frameworks": {
