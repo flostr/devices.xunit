@@ -14,7 +14,12 @@ namespace Xunit.Runners
 
         public DelegateCommand(Action execute, Func<bool> canexecute = null)
         {
-            this.execute = execute ?? throw new ArgumentNullException(nameof(execute));
+            //EDIT BEGIN
+            //this.execute = execute ?? throw new ArgumentNullException(nameof(execute));
+            if (execute == null)
+                throw new ArgumentNullException(nameof(execute));
+            this.execute = execute;
+            //EDIT END
             canExecute = canexecute ?? (() => true);
         }
 
@@ -54,7 +59,12 @@ namespace Xunit.Runners
 
         public DelegateCommand(Action<T> execute, Func<T, bool> canexecute = null)
         {
-            this.execute = execute ?? throw new ArgumentNullException(nameof(execute));
+            //EDIT BEGIN
+            //this.execute = execute ?? throw new ArgumentNullException(nameof(execute));
+            if (execute == null)
+                throw new ArgumentNullException(nameof(execute));
+            this.execute = execute;
+            //EDIT END
             canExecute = canexecute ?? (e => true);
         }
 

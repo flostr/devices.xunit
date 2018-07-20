@@ -22,6 +22,14 @@ namespace Xunit.Runners
         readonly ManualResetEventSlim mre = new ManualResetEventSlim(false);
         bool isBusy;
 
+        //EDIT BEGIN
+        //runner config
+        private readonly int MaxDiagnosticMessagesLength = 5000;
+        private readonly bool ParallelizeAssembly = false;
+        private readonly bool ShowDiagnosticMessages = true;
+        private readonly int LongRunningTestSeconds = 5;
+        //EDIT END
+
         internal HomeViewModel(INavigation navigation, ITestRunner runner)
         {
             this.navigation = navigation;
@@ -41,7 +49,13 @@ namespace Xunit.Runners
 
         void RunnerOnOnDiagnosticMessage(string s)
         {
-            DiagnosticMessages += $"{s}{Environment.NewLine}{Environment.NewLine}";
+            //EDIT BEGIN
+            DiagnosticMessages = $"{s}{Environment.NewLine}{Environment.NewLine}" + DiagnosticMessages;
+
+            if (DiagnosticMessages.Length > MaxDiagnosticMessagesLength)
+                DiagnosticMessages = DiagnosticMessages.Substring(0, MaxDiagnosticMessagesLength);
+            //EDIT END
+
         }
 
 
@@ -108,6 +122,12 @@ namespace Xunit.Runners
                 // Back on UI thread
                 foreach (var vm in allTests)
                 {
+                    //EDIT BEGIN
+                    vm.RunInfo.Configuration.ParallelizeAssembly = ParallelizeAssembly;
+                    vm.RunInfo.Configuration.LongRunningTestSeconds = LongRunningTestSeconds;
+                    vm.RunInfo.Configuration.DiagnosticMessages = ShowDiagnosticMessages;
+                    //EDIT END
+
                     TestAssemblies.Add(vm);
                 }
 
@@ -138,7 +158,40 @@ namespace Xunit.Runners
             {
                 DiagnosticMessages += $"-----------{Environment.NewLine}";
             }
-            return runner.Run(TestAssemblies.Select(t => t.RunInfo).ToList(), "Run Everything");
+
+            //EDIT BEGIN
+            //return runner.Run(TestAssemblies.Select(t => t.RunInfo).ToList(), "Run Everything");
+            var tests = TestAssemblies.Select(t => t.RunInfo).ToList();
+
+            if (String.IsNullOrEmpty(RunnerOptions.Current.Filter))
+                return runner.Run(tests, "Run Everything");
+
+            //filtered
+            var testsFiltered = new List<AssemblyRunInfo>();
+            foreach (var test in tests)
+            {
+                var items = test.TestCases.Where(t => t.DisplayName.Contains(RunnerOptions.Current.Filter)).ToList();
+
+                if (items.Count > 0)
+                {
+                    test.TestCases.Clear();
+
+                    foreach (var item in items)
+                        test.TestCases.Add(item);
+
+                    testsFiltered.Add(test);
+                }
+            }
+
+            //navigate to filtered if only one assembly
+            if (testsFiltered.Count == 1 && NavigateToTestAssemblyCommand.CanExecute(testsFiltered[0]))
+            {
+                TestAssemblyViewModel.SearchFilter = RunnerOptions.Current.Filter;
+                NavigateToTestAssemblyCommand.Execute(testsFiltered[0]);
+            }
+
+            return runner.Run(testsFiltered, "Run Filtered");
+            //EDIT END
         }
     }
 }

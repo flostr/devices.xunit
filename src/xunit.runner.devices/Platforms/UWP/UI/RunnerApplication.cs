@@ -24,6 +24,23 @@ namespace Xunit.Runners.UI
 
         protected abstract void OnInitializeRunner();
 
+        //EDIT BEGIN
+        public string Filter { get; set; } = "";
+
+
+        //will be called if finished
+        internal static Action<Dictionary<Abstractions.ITestCase, TestCaseViewModel>> _OnTestsFinished;
+        protected virtual void OnTestsFinished(Dictionary<Abstractions.ITestCase, TestCaseViewModel> testCases) { }
+
+        internal static Func<Task> _WaitUntilCanTerminate;
+        protected virtual Task WaitUntilCanTerminate() { return Task.FromResult(0); }
+
+        protected RunnerApplication()
+        {
+            _OnTestsFinished = OnTestsFinished;
+            _WaitUntilCanTerminate = async () => { await WaitUntilCanTerminate(); };
+        }
+        //EDIT END
 
 
         protected void AddTestAssembly(Assembly assembly)
@@ -43,16 +60,21 @@ namespace Xunit.Runners.UI
         /// <param name="e">Details about the launch request and process.</param>
         protected override void OnLaunched(LaunchActivatedEventArgs e)
         {
+            //EDIT BEGIN
+#if !WINDOWS_APP
             if (!string.IsNullOrWhiteSpace(e.Arguments) && e.Arguments.Contains("role") && e.Arguments.Contains("parentprocessid"))
             {
                 // Start the VS Test Runner if there's args we recognize
                 Microsoft.VisualStudio.TestPlatform.TestExecutor.UnitTestClient.CreateDefaultUI();
+
                 // Ensure the current window is active
                 Window.Current.Activate();
 
                 Microsoft.VisualStudio.TestPlatform.TestExecutor.UnitTestClient.Run(e.Arguments);
             }
             else
+#endif
+            //EDIT END
             {
                 Resources.MergedDictionaries.Add(new DeviceResources());
 
@@ -73,6 +95,9 @@ namespace Xunit.Runners.UI
 
                     RunnerOptions.Current.TerminateAfterExecution = TerminateAfterExecution;
                     RunnerOptions.Current.AutoStart = AutoStart;
+                    //EDIT BEGIN
+                    RunnerOptions.Current.Filter = Filter;
+                    //EDIT END
 
                     var nav = new Navigator(rootFrame);
 
@@ -87,6 +112,8 @@ namespace Xunit.Runners.UI
                 // Ensure the current window is active
                 Window.Current.Activate();
                 // Hook up the default Back handler
+                //EDIT BEGIN
+#if !WINDOWS_APP
                 SystemNavigationManager.GetForCurrentView().BackRequested += (s, args) =>
                 {
                     if (rootFrame.CanGoBack)
@@ -95,18 +122,27 @@ namespace Xunit.Runners.UI
                         rootFrame.GoBack();
                     }
                 };
+#endif
+                //EDIT END
             }
         }
 
         void OnNavigated(object sender, NavigationEventArgs e)
         {
+            //EDIT BEGIN
+#if !WINDOWS_APP
             // Each time a navigation event occurs, update the Back button's visibility
             SystemNavigationManager.GetForCurrentView().AppViewBackButtonVisibility =
                 ((Frame)sender).CanGoBack ?
                 AppViewBackButtonVisibility.Visible :
                 AppViewBackButtonVisibility.Collapsed;
+#endif
+            //EDIT END
 
-            if (e.Content is Page page)
+            //EDIT BEGIN
+            Page page = e.Content as Page;
+            if (page != null)
+            //EDIT END
                 page.DataContext = e.Parameter;
         }
     }

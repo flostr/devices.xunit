@@ -49,6 +49,10 @@
     <Page Condition="'$(IsXamForms)' == 'false'" Include="Platforms\UWP\**\*.xaml" SubType="Designer" Generator="MSBuild:Compile" />
     <EmbeddedResource Condition="'$(IsXamForms)' == 'true'" Include="Platforms\Forms\**\*.xaml" SubType="Designer" Generator="MSBuild:UpdateDesignTimeXaml" />
 
+	<!-- EDIT BEGIN -->
+    <None Remove="packages.config" />	
+	<!-- EDIT END -->
+	
     <None Update="**\*.xaml.cs" DependentUpon="%(Filename)" />
     <Compile Update="**\*.xaml.cs" DependentUpon="%(Filename)" />
     <EmbeddedResource Include="Properties\xunit.runner.devices.rd.xml" />

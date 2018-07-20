@@ -19,9 +19,20 @@ namespace Xunit.Runners.Sinks
                                    SynchronizationContext context
         )
         {
-            this.testCases = testCases ?? throw new ArgumentNullException(nameof(testCases));
-            this.listener = listener ?? throw new ArgumentNullException(nameof(listener));
-            this.context = context ?? throw new ArgumentNullException(nameof(context));
+            //EDIT BEGIN
+            //this.testCases = testCases ?? throw new ArgumentNullException(nameof(testCases));
+            //this.listener = listener ?? throw new ArgumentNullException(nameof(listener));
+            //this.context = context ?? throw new ArgumentNullException(nameof(context));
+            if (testCases == null)
+                throw new ArgumentNullException(nameof(testCases));
+            if (listener == null)
+                throw new ArgumentNullException(nameof(listener));
+            if (context == null)
+                throw new ArgumentNullException(nameof(context));
+            this.testCases = testCases;
+            this.listener = listener;
+            this.context = context;
+            //EDIT END
 
             Execution.TestFailedEvent += HandleTestFailed;
             Execution.TestPassedEvent += HandleTestPassed;
@@ -45,9 +56,20 @@ namespace Xunit.Runners.Sinks
 
         async void MakeTestResultViewModel(ITestResultMessage testResult, TestState outcome)
         {
+            //EDIT BEGIN
+#if WINDOWS_APP
+            //EDIT TODO
+            var tcs = new TaskCompletionSource<TestResultViewModel>(TaskCreationOptions.None);
+#else
             var tcs = new TaskCompletionSource<TestResultViewModel>(TaskCreationOptions.RunContinuationsAsynchronously);
+#endif
+            //EDIT END
 
-            if (!testCases.TryGetValue(testResult.TestCase, out TestCaseViewModel testCase))
+            //EDIT BEGIN
+            //if (!testCases.TryGetValue(testResult.TestCase, out TestCaseViewModel testCase))
+            TestCaseViewModel testCase;
+            if (!testCases.TryGetValue(testResult.TestCase, out testCase))
+            //EDIT END
             {
                 // no matching reference, search by Unique ID as a fallback
                 testCase = testCases.FirstOrDefault(kvp => kvp.Key.UniqueID?.Equals(testResult.TestCase.UniqueID) ?? false).Value;

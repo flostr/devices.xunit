@@ -45,5 +45,9 @@ namespace Xunit.Runners.UI
         /// 
         /// </summary>
         public bool TerminateAfterExecution { get; set; }
+
+        //EDIT BEGIN
+        public string Filter { get; set; }
+        //EDIT END
     }
 }

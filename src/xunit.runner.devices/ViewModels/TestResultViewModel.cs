@@ -18,6 +18,16 @@ namespace Xunit.Runners
         TestCaseViewModel testCase;
         ITestResultMessage testResultMessage;
 
+        //EDIT BEGIN
+#if WINDOWS_APP
+        public static INavigation Navigation;
+        public System.Windows.Input.ICommand BackCommand => new DelegateCommand(() =>
+        {
+            (Navigation as Navigator)?.Back();
+        });
+#endif
+        //EDIT END
+
         /// <summary>
         /// 
         /// </summary>
@@ -25,7 +35,11 @@ namespace Xunit.Runners
         /// <param name="testResult"></param>
         public TestResultViewModel(TestCaseViewModel testCase, ITestResultMessage testResult)
         {
-            TestCase = testCase ?? throw new ArgumentNullException(nameof(testCase));
+            //EDIT BEGIN
+            //TestCase = testCase ?? throw new ArgumentNullException(nameof(testCase));
+            if (testCase == null) throw new ArgumentNullException(nameof(testCase));
+            TestCase = testCase;
+            //EDIT END
             TestResultMessage = testResult;
 
             if (testResult != null)
