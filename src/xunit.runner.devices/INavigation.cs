@@ -18,6 +18,12 @@ namespace Xunit.Runners
         /// <param name="dataContext"></param>
         /// <returns></returns>
         Task NavigateTo(NavigationPage page, object dataContext = null);
+
+        //EDIT BEGIN
+#if WINDOWS_APP
+        void Back();
+#endif
+        //EDIT END
     }
 
     /// <summary>

@@ -22,8 +22,17 @@ namespace Xunit.Runners.Utilities
         {
             if (sort == null) throw new ArgumentNullException(nameof(sort));
 
-            this.dataSource = dataSource ?? throw new ArgumentNullException(nameof(dataSource));
-            this.filter = filter ?? throw new ArgumentNullException(nameof(filter));
+            //EDIT BEGIN
+            //this.dataSource = dataSource ?? throw new ArgumentNullException(nameof(dataSource));
+            //this.filter = filter ?? throw new ArgumentNullException(nameof(filter));
+            if (dataSource == null)
+                throw new ArgumentNullException(nameof(dataSource));
+            if (filter == null)
+                throw new ArgumentNullException(nameof(filter));
+
+            this.dataSource = dataSource;
+            this.filter = filter;
+            //EDIT END
             this.filterArgument = filterArgument;
             filteredList = new SortedList<T>(sort);
 
@@ -259,7 +268,11 @@ namespace Xunit.Runners.Utilities
                 }
             }
 
-            if (item is INotifyPropertyChanged observable)
+            //EDIT BEGIN
+            //if (item is INotifyPropertyChanged observable)
+            var observable = item as INotifyPropertyChanged;
+            if (observable != null)
+                //EDIT END
             {
                 observable.PropertyChanged += DataSource_ItemChanged;
             }
@@ -267,7 +280,11 @@ namespace Xunit.Runners.Utilities
 
         void OnRemoved(T item)
         {
-            if (item is INotifyPropertyChanged observable)
+            //EDIT BEGIN
+            //if (item is INotifyPropertyChanged observable)
+            var observable = item as INotifyPropertyChanged;
+            if (observable != null)
+                //EDIT END
             {
                 observable.PropertyChanged -= DataSource_ItemChanged;
             }

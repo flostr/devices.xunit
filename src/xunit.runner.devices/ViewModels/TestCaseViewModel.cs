@@ -22,15 +22,31 @@ namespace Xunit.Runners
         ITestCase testCase;
         TestResultViewModel testResult;
 
+        //EDIT BEGIN
+#if WINDOWS_APP
+        public static INavigation Navigation;
+        public System.Windows.Input.ICommand BackCommand => new DelegateCommand(() =>
+        {
+            (Navigation as Navigator)?.Back();
+        });
+#endif
+        //EDIT END
 
         internal TestCaseViewModel(string assemblyFileName, ITestCase testCase, INavigation navigation, ITestRunner runner)
         {
             this.navigation = navigation;
             this.runner = runner;
 
-            AssemblyFileName = assemblyFileName ?? throw new ArgumentNullException(nameof(assemblyFileName));
-            TestCase = testCase ?? throw new ArgumentNullException(nameof(testCase));
-
+            //EDIT BEGIN
+            //AssemblyFileName = assemblyFileName ?? throw new ArgumentNullException(nameof(assemblyFileName));
+            //TestCase = testCase ?? throw new ArgumentNullException(nameof(testCase));
+            if (assemblyFileName == null)
+                throw new ArgumentNullException(nameof(assemblyFileName));
+            AssemblyFileName = assemblyFileName;
+            if (testCase == null)
+                throw new ArgumentNullException(nameof(testCase));
+            TestCase = testCase;
+            //EDIT END
 
             Result = TestState.NotRun;
             RunStatus = RunStatus.NotRun;

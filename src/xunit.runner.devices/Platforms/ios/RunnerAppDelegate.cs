@@ -37,6 +37,18 @@ namespace Xunit.Runner
         protected TextWriter Writer { get; set; }
         protected IResultChannel ResultChannel { get; set; }
 
+        //EDIT BEGIN
+        public string Filter { get; set; } = "";
+
+
+        //will be called if finished
+        internal static Action<Dictionary<Abstractions.ITestCase, TestCaseViewModel>> _OnTestsFinished;
+        protected virtual void OnTestsFinished(Dictionary<Abstractions.ITestCase, TestCaseViewModel> testCases) { }
+
+        internal static Func<Task> _WaitUntilCanTerminate;
+        protected virtual Task WaitUntilCanTerminate() { return Task.FromResult(0); }
+        //EDIT END
+
         //
         // This method is invoked when the application has loaded and is ready to run. In this 
         // method you should instantiate the window, load the UI into it and then make the window
@@ -47,6 +59,12 @@ namespace Xunit.Runner
         public override bool FinishedLaunching(UIApplication uiApplication, NSDictionary launchOptions)
         {
             Forms.Init();
+
+            //EDIT BEGIN
+            _OnTestsFinished = OnTestsFinished;
+            _WaitUntilCanTerminate = async () => { await WaitUntilCanTerminate(); };
+            RunnerOptions.Current.Filter = Filter;
+            //EDIT END
 
             RunnerOptions.Current.TerminateAfterExecution = TerminateAfterExecution;
             RunnerOptions.Current.AutoStart = AutoStart;

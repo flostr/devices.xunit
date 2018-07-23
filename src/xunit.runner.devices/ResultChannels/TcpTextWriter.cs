@@ -35,7 +35,12 @@ namespace Xunit.Runners.UI
             if ((port < 0) || (port > ushort.MaxValue))
                 throw new ArgumentException("port");
 
-            HostName = hostName ?? throw new ArgumentNullException(nameof(hostName));
+            //EDIT BEGIN
+            //HostName = hostName ?? throw new ArgumentNullException(nameof(hostName));
+            if (hostName == null)
+                throw new ArgumentNullException(nameof(hostName));
+            HostName = hostName;
+            //EDIT END
             Port = port;
 
 #if __IOS__ || MAC

@@ -119,7 +119,10 @@ namespace Xunit.Runners
             {
                 foreach (var assm in TestAssemblies)
                 {
-#if WINDOWS_UWP
+                    //EDIT BEGIN
+                    //#if WINDOWS_UWP
+#if WINDOWS_UWP || WINDOWS_APP
+                    //EDIT END
                     var location = Windows.ApplicationModel.Package.Current.InstalledLocation.Path;
 
                     // See if it's an exe or dll
@@ -198,8 +201,11 @@ namespace Xunit.Runners
 #if __ANDROID__
             // Android needs to read the config from its asset manager
             return PlatformHelpers.ReadConfigJson(assemblyName);
-#else
 
+//EDIT BEGIN
+#elif WINDOWS_APP
+//EDIT TODO
+#else
             // See if there's a directory with the assm name. this might be the case for appx
             if (Directory.Exists(assemblyName))
             {
@@ -227,15 +233,24 @@ namespace Xunit.Runners
                 return File.OpenRead("xunit.runner.json");
             }
 
-            return null;
 #endif
+            return null;
+            //EDIT END
         }
 
         Task RunTests(Func<IReadOnlyList<AssemblyRunInfo>> testCaseAccessor)
         {
+            //EDIT BEGIN
+#if WINDOWS_APP
+//EDIT TODO
+            var tcs = new TaskCompletionSource<object>(TaskCreationOptions.None);
+
+            ThreadPoolHelper.RunAsync(() =>
+#else
             var tcs = new TaskCompletionSource<object>(TaskCreationOptions.RunContinuationsAsynchronously);
 
             void Handler()
+#endif
             {
                 var toDispose = new List<IDisposable>();
 
@@ -264,8 +279,12 @@ namespace Xunit.Runners
                     tcs.TrySetResult(null);
                 }
             }
-
+#if WINDOWS_APP
+            );
+#else
             ThreadPoolHelper.RunAsync(Handler);
+#endif
+            //EDIT END
 
             return tcs.Task;
         }
@@ -307,6 +326,13 @@ namespace Xunit.Runners
             controller.RunTests(xunitTestCases.Select(tc => tc.Value.TestCase).ToList(), resultsSink, executionOptions);
             resultsSink.Finished.WaitOne();
 
+            //EDIT BEGIN
+#if WINDOWS_APP || WINDOWS_UWP
+            Xunit.Runners.UI.RunnerApplication._OnTestsFinished?.Invoke(xunitTestCases);
+#elif __IOS__
+            Xunit.Runner.RunnerAppDelegate._OnTestsFinished?.Invoke(xunitTestCases);
+#endif
+            //EDIT END
 
             deviceExecSink.OnMessage(new TestAssemblyExecutionFinished(assm, executionOptions, resultsSink.ExecutionSummary));
         }
@@ -315,7 +341,12 @@ namespace Xunit.Runners
         {
             var @event = new ManualResetEvent(false);
 
+            //EDIT BEGIN
+#if WINDOWS_APP
+            ThreadPoolHelper.RunAsync(() =>
+#else
             void Handler()
+#endif
             {
                 try
                 {
@@ -326,8 +357,12 @@ namespace Xunit.Runners
                     @event.Set();
                 }
             }
-
+#if WINDOWS_APP
+            );
+#else
             ThreadPoolHelper.RunAsync(Handler);
+#endif
+            //EDIT END
 
             return @event;
         }

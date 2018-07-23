@@ -14,6 +14,14 @@ namespace Xunit.Runners
         public Navigator(Frame frame)
         {
             this.frame = frame;
+            //EDIT BEGIN
+#if WINDOWS_APP
+            //to allow back navigation
+            TestCaseViewModel.Navigation = this;
+            TestAssemblyViewModel.Navigation = this;
+            TestResultViewModel.Navigation = this;
+#endif
+            //EDIT END
         }
 
         public Task NavigateTo(NavigationPage page, object dataContext = null)
@@ -40,7 +48,20 @@ namespace Xunit.Runners
 
             frame.Navigate(t, dataContext);
 
-            return Task.CompletedTask;
+            //EDIT BEGIN
+            //return Task.CompletedTask;
+            return Task.FromResult(0);
+            //EDIT END
         }
+
+        //EDIT BEGIN
+#if WINDOWS_APP
+        public void Back()
+        {
+            if (frame.CanGoBack)
+                frame.GoBack();
+        }
+#endif
+        //EDIT END
     }
 }

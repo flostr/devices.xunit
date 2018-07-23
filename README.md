@@ -1,3 +1,26 @@
+This is a fork of https://github.com/xunit/devices.xunit located at https://github.com/flostr/devices.xunit (Branch: master-filter-winrt-etc).
+
+* Added functionality to specify a build-in filter, which can be set in RunnerApplication.Filter which will execute tests which include the filter in their full name (namespace + class name)
+  Filter = "TakePhotoViewModelTests";
+* Added RunnerApplication.OnTestsFinished event, which allows to specify what should happen after tests have been run. E.g. to deliver file output.
+
+  
+## WinRT
+
+* There's a project file for WinRT: src\xunit.runner.devices
+
+xunit.runner.win81 mostly uses UWP sources, but some files needed to be changed (these can be found in winrt directory). 
+
+
+## General
+
+* Those edits are marked between EDIT BEGIN and EDIT END, EDIT TODO marks code which still needs to be ported.
+* XAML files have been heavily modifed.
+* RunnerApplication has been extended to support OnTestsFinished, which will be called after tests have been finished.
+
+
+# Content of original README.md
+
 ## <a href="https://github.com/xunit/xunit"><img src="https://raw.github.com/xunit/media/master/full-logo.png" title="xUnit.net Device Runners" /></a>
 
 [<img align="right" src="https://xunit.github.io/images/dotnet-fdn-logo.png" width="100" />](https://www.dotnetfoundation.org/)

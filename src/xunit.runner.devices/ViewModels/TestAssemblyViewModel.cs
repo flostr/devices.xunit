@@ -32,9 +32,21 @@ namespace Xunit.Runners
         private int _failed;
         private int _skipped;
 
+        //EDIT BEGIN
+        public static string SearchFilter = null;
+        //EDIT END
+
         internal TestAssemblyViewModel(AssemblyRunInfo runInfo, ITestRunner runner)
         {
             RunInfo = runInfo;
+            //EDIT BEGIN
+            //set initial SearchQuery
+            if (!String.IsNullOrEmpty(SearchFilter))
+            {
+                SearchQuery = SearchFilter;
+                SearchFilter = null;
+            }
+            //EDIT END
             ;
             this.runner = runner;
 
@@ -65,7 +77,16 @@ namespace Xunit.Runners
 
         public ICommand RunFilteredTestsCommand => runFilteredTestsCommand;
 
-
+        //EDIT BEGIN
+#if WINDOWS_APP
+        public static INavigation Navigation;
+        public System.Windows.Input.ICommand BackCommand => new DelegateCommand(() =>
+        {
+            (Navigation as Navigator)?.Back();
+        }, () => !isBusy);
+#endif
+        //EDIT END
+        
         public IList<TestCaseViewModel> TestCases => filteredTests;
 
         public string DetailText
@@ -230,13 +251,23 @@ namespace Xunit.Runners
 
                 var results = outcomes.ToDictionary(k => k.Key, v => v.Count());
 
-                results.TryGetValue(TestState.Passed, out int positive);
+                //EDIT BEGIN
+                //results.TryGetValue(TestState.Passed, out int positive);
+                //results.TryGetValue(TestState.Failed, out int failure);
+                //results.TryGetValue(TestState.Skipped, out int skipped);
+                //results.TryGetValue(TestState.NotRun, out int notRun);
+                int positive;
+                int failure;
+                int skipped;
+                int notRun;
+                results.TryGetValue(TestState.Passed, out positive);
 
-                results.TryGetValue(TestState.Failed, out int failure);
+                results.TryGetValue(TestState.Failed, out failure);
 
-                results.TryGetValue(TestState.Skipped, out int skipped);
+                results.TryGetValue(TestState.Skipped, out skipped);
 
-                results.TryGetValue(TestState.NotRun, out int notRun);
+                results.TryGetValue(TestState.NotRun, out notRun);
+                //EDIT END
 
                 Passed = positive;
                 Failed = failure;

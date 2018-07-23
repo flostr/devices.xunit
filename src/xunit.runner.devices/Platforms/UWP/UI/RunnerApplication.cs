@@ -27,7 +27,23 @@ namespace Xunit.Runners.UI
 
         protected abstract void OnInitializeRunner();
 
+        //EDIT BEGIN
+        public string Filter { get; set; } = "";
 
+
+        //will be called if finished
+        internal static Action<Dictionary<Abstractions.ITestCase, TestCaseViewModel>> _OnTestsFinished;
+        protected virtual void OnTestsFinished(Dictionary<Abstractions.ITestCase, TestCaseViewModel> testCases) { }
+
+        internal static Func<Task> _WaitUntilCanTerminate;
+        protected virtual Task WaitUntilCanTerminate() { return Task.FromResult(0); }
+
+        protected RunnerApplication()
+        {
+            _OnTestsFinished = OnTestsFinished;
+            _WaitUntilCanTerminate = async () => { await WaitUntilCanTerminate(); };
+        }
+        //EDIT END
 
         protected void AddTestAssembly(Assembly assembly)
         {
@@ -76,6 +92,9 @@ namespace Xunit.Runners.UI
 
                     RunnerOptions.Current.TerminateAfterExecution = TerminateAfterExecution;
                     RunnerOptions.Current.AutoStart = AutoStart;
+                //EDIT BEGIN
+                RunnerOptions.Current.Filter = Filter;
+                //EDIT END
 
                     var nav = new Navigator(rootFrame);
 
@@ -91,6 +110,9 @@ namespace Xunit.Runners.UI
 
                 // Ensure the current window is active
                 Window.Current.Activate();
+
+            //EDIT BEGIN
+#if !WINDOWS_APP
                 // Hook up the default Back handler
                 SystemNavigationManager.GetForCurrentView().BackRequested += (s, args) =>
                 {
@@ -100,18 +122,27 @@ namespace Xunit.Runners.UI
                         rootFrame.GoBack();
                     }
                 };
+#endif
             }
+            //EDIT END
         }
 
         void OnNavigated(object sender, NavigationEventArgs e)
         {
+            //EDIT BEGIN
+#if !WINDOWS_APP
             // Each time a navigation event occurs, update the Back button's visibility
             SystemNavigationManager.GetForCurrentView().AppViewBackButtonVisibility =
                 ((Frame)sender).CanGoBack ?
                 AppViewBackButtonVisibility.Visible :
                 AppViewBackButtonVisibility.Collapsed;
+#endif
+            //EDIT END
 
-            if (e.Content is Page page)
+            //EDIT BEGIN
+            Page page = e.Content as Page;
+            if (page != null)
+                //EDIT END
                 page.DataContext = e.Parameter;
         }
     }
